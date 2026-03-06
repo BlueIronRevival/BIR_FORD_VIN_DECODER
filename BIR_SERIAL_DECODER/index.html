@@ -4,23 +4,622 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ford Tractor Serial Number Lookup | Blue Iron Revival</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --panel: #ffffff;
+      --panel-soft: #f8fafc;
+      --text: #1f2937;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --border-soft: #e2e8f0;
+      --brand: #1d4ed8;
+      --brand-dark: #1e40af;
+      --brand-soft: #eff6ff;
+      --brand-soft-border: #bfdbfe;
+      --dark: #0f172a;
+      --warn-bg: #fff7ed;
+      --warn-border: #fdba74;
+      --warn-text: #9a3412;
+      --error-bg: #fef2f2;
+      --error-border: #b91c1c;
+      --error-text: #991b1b;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.07);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .page-wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 16px 40px;
+    }
+
+    .hero { margin-bottom: 18px; }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 10px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px 0;
+      font-size: 2rem;
+      line-height: 1.15;
+      color: var(--dark);
+    }
+
+    .hero p {
+      margin: 0;
+      color: #475569;
+      line-height: 1.6;
+      max-width: 760px;
+    }
+
+    .lookup-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .lookup-card-top {
+      background: var(--dark);
+      color: #fff;
+      padding: 14px 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .lookup-card-body { padding: 18px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+
+    select, input {
+      width: 100%;
+      padding: 0.88rem 0.95rem;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    select:disabled {
+      background: #f8fafc;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .help-box {
+      margin-top: 2px;
+      padding: 0.9rem 1rem;
+      background: var(--brand-soft);
+      border: 1px solid var(--brand-soft-border);
+      border-radius: 10px;
+      color: #1e3a8a;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 10px;
+      padding: 0.95rem 1.2rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.02s ease;
+    }
+
+    button:active { transform: translateY(1px); }
+
+    .primary-btn {
+      background: var(--brand);
+      color: #fff;
+      flex: 1 1 220px;
+    }
+
+    .primary-btn:hover { background: var(--brand-dark); }
+
+    .secondary-btn {
+      background: #e2e8f0;
+      color: #0f172a;
+      flex: 1 1 180px;
+    }
+
+    .secondary-btn:hover { background: #cbd5e1; }
+
+    .result-wrap { margin-top: 18px; }
+
+    .result-card {
+      background: linear-gradient(180deg, #ffffff 0%, var(--panel-soft) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .result-topbar {
+      background: var(--dark);
+      color: #fff;
+      padding: 14px 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .result-body { padding: 18px; }
+
+    .result-title {
+      margin: 0 0 8px 0;
+      font-size: 1.45rem;
+      color: var(--dark);
+    }
+
+    .result-message {
+      margin: 0;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .result-stat {
+      background: #fff;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 0.9rem;
+    }
+
+    .result-stat-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.35rem;
+    }
+
+    .result-stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--dark);
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .result-notes {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .result-notes h3 {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+      color: var(--dark);
+    }
+
+    .result-notes ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .result-warning {
+      margin-top: 14px;
+      padding: 0.9rem 1rem;
+      border-radius: 10px;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-border);
+      color: var(--warn-text);
+      line-height: 1.55;
+    }
+
+    .result-empty, .result-error {
+      border-radius: 12px;
+      padding: 1rem;
+      line-height: 1.6;
+    }
+
+    .result-empty {
+      background: #fff;
+      border: 1px solid #d1d5db;
+      color: #374151;
+    }
+
+    .result-error {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error-text);
+    }
+
+    .small-muted {
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 720px) {
+      .hero h1 { font-size: 1.7rem; }
+      .grid { grid-template-columns: 1fr; }
+      .lookup-card-body, .result-body { padding: 16px; }
+      .actions { flex-direction: column; }
+      .primary-btn, .secondary-btn { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-  <main class="container">
-    <h1>Ford Tractor Serial Number Lookup</h1>
-    <p class="subtext">
-      Enter a serial number to check the approximate production year.
-    </p>
-
-    <div class="card">
-      <label for="serialInput">Serial Number</label>
-      <input id="serialInput" type="text" placeholder="Example: 12345" />
-      <button id="lookupBtn">Look Up</button>
-      <div id="result" class="result"></div>
+  <div class="page-wrap">
+    <div class="hero">
+      <div class="eyebrow">Blue Iron Revival</div>
+      <h1>Ford Tractor Serial Number Lookup</h1>
+      <p>
+        Identify the likely production year of your Ford tractor by family, model, and serial number.
+        This tool is designed for Ford agricultural tractors from 1939 through 1980.
+      </p>
     </div>
-  </main>
 
-  <script src="script.js"></script>
+    <div class="lookup-card">
+      <div class="lookup-card-top">Serial Lookup Tool</div>
+
+      <div class="lookup-card-body">
+        <div class="grid">
+          <div class="field">
+            <label for="tractorFamily">Tractor family / series</label>
+            <select id="tractorFamily">
+              <option value="">Select family</option>
+              <option value="9N">9N</option>
+              <option value="2N">2N</option>
+              <option value="8N">8N</option>
+              <option value="NAA/Jubilee">NAA / Jubilee</option>
+              <option value="Hundred Series">Hundred Series</option>
+              <option value="01 Series">01 Series</option>
+              <option value="Thousand 4-cyl">Thousand 4-cyl</option>
+              <option value="Thousand 3-cyl">Thousand 3-cyl</option>
+              <option value="x600 Series">x600 Series</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="tractorModel">Model</label>
+            <select id="tractorModel" disabled>
+              <option value="">Select model</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <div id="serialHelp" class="help-box">
+              Select a tractor family to see model options and serial number notes.
+            </div>
+          </div>
+
+          <div class="field full">
+            <label for="serialInput">Serial number</label>
+            <input
+              type="text"
+              id="serialInput"
+              placeholder="Example: 8N245637 or C550000"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="lookupBtn" class="primary-btn" type="button">Lookup Tractor Year</button>
+          <button id="resetBtn" class="secondary-btn" type="button">Reset</button>
+        </div>
+
+        <div id="lookupResult" class="result-wrap" style="display:none;"></div>
+
+        <div class="footer-note">
+          For best results, confirm both the stamped model identification and the stamped serial number.
+          Some Ford numbering systems overlap across families and eras.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="ford_serial_lookup_patch.js"></script>
+  <script>
+    let fordSerialData = [];
+
+    const modelOptionsByFamily = {
+      "9N": ["9N"],
+      "2N": ["2N"],
+      "8N": ["8N"],
+      "NAA/Jubilee": ["NAA", "Golden Jubilee"],
+      "Hundred Series": ["600", "700", "800", "900"],
+      "01 Series": ["601", "701", "801", "901"],
+      "Thousand 4-cyl": ["2000", "4000"],
+      "Thousand 3-cyl": ["2000", "3000", "4000", "5000"],
+      "x600 Series": ["2600", "3600", "4600", "5600", "6600", "7600"]
+    };
+
+    const familyHelpText = {
+      "9N": "Serial numbers were typically stamped on the left side of the engine block, below the head and behind the oil filter area.",
+      "2N": "2N tractors commonly use serial numbers with a 9N prefix. That is normal and does not automatically mean the tractor is a 9N.",
+      "8N": "8N serial numbers were typically stamped on the left side of the engine block. Check carefully for wear, paint, or uneven stamp depth.",
+      "NAA/Jubilee": "NAA / Jubilee tractors used NAA-prefixed serial numbers. Check the flat stamped area on the left side of the engine.",
+      "Hundred Series": "Hundred Series tractors used numeric serials. Model and serial stamps are separate, so verify both before drawing a conclusion.",
+      "01 Series": "01 Series tractors also used numeric serials. Because serials can overlap by era, model selection matters here.",
+      "Thousand 4-cyl": "Early 4-cylinder Thousand Series tractors used numeric serials. Check the stamped identification area carefully and confirm the model.",
+      "Thousand 3-cyl": "Later 3-cylinder Thousand Series tractors commonly use a plant prefix such as A, B, or C before the serial number.",
+      "x600 Series": "x600 tractors commonly use plant-prefixed serial numbers. Prefixes such as A, B, or C indicate production plant."
+    };
+
+    async function loadFordSerialData() {
+      try {
+        const response = await fetch("./ford_serial_ranges_core.json");
+        if (!response.ok) throw new Error(`Failed to load serial data: ${response.status}`);
+        fordSerialData = await response.json();
+      } catch (error) {
+        console.error("Error loading Ford serial data:", error);
+        renderError(
+          "Could not load Ford serial number data.<br><br>Make sure <code>ford_serial_ranges_core.json</code> is in the same folder as <code>index.html</code>."
+        );
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;");
+    }
+
+    function normalizeUserModel(value) {
+      return String(value || "").trim().toUpperCase();
+    }
+
+    function populateModelDropdown(family) {
+      const modelSelect = document.getElementById("tractorModel");
+      modelSelect.innerHTML = `<option value="">Select model</option>`;
+
+      if (!family || !modelOptionsByFamily[family]) {
+        modelSelect.disabled = true;
+        return;
+      }
+
+      for (const model of modelOptionsByFamily[family]) {
+        const option = document.createElement("option");
+        option.value = model;
+        option.textContent = model;
+        modelSelect.appendChild(option);
+      }
+
+      modelSelect.disabled = false;
+    }
+
+    function updateHelpText(family) {
+      const helpBox = document.getElementById("serialHelp");
+      helpBox.textContent = family
+        ? (familyHelpText[family] || "Review the stamped serial carefully before lookup.")
+        : "Select a tractor family to see model options and serial number notes.";
+    }
+
+    function doesModelRoughlyMatch(selectedModel, matchedRow) {
+      if (!selectedModel) return true;
+      const normalizedSelected = normalizeUserModel(selectedModel);
+      const rowFamily = normalizeUserModel(matchedRow?.model_family || "");
+      const rowEra = normalizeUserModel(matchedRow?.era || "");
+      const rowModel = normalizeUserModel(matchedRow?.model || "");
+
+      return rowFamily.includes(normalizedSelected) || rowEra.includes(normalizedSelected) || rowModel.includes(normalizedSelected);
+    }
+
+    function buildWarnings(match, selectedFamily) {
+      const warnings = [];
+      if (!match) return warnings;
+
+      if (selectedFamily === "2N" && String(match.normalized_serial || "").startsWith("9N")) {
+        warnings.push("2N tractors often carry a 9N serial prefix. That is expected and does not by itself mean the tractor is a 9N.");
+      }
+
+      if (["Hundred Series", "01 Series", "Thousand 4-cyl"].includes(selectedFamily)) {
+        warnings.push("This era uses numeric serial systems that can overlap across Ford families. Always confirm the model stamp along with the serial.");
+      }
+
+      if (["Thousand 3-cyl", "x600 Series"].includes(selectedFamily)) {
+        warnings.push("Later tractors often use plant-prefixed serial numbers. Prefix letters such as A, B, or C should be included when present.");
+      }
+
+      if (match.inferred_prefix_bucket) {
+        warnings.push("This result used a shared later-series A/B/C prefix bucket. For plant-specific research, verify against a dedicated plant reference.");
+      }
+
+      return warnings;
+    }
+
+    function renderError(messageHtml) {
+      const resultBox = document.getElementById("lookupResult");
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `<div class="result-error"><strong>Error:</strong> ${messageHtml}</div>`;
+    }
+
+    function renderEmpty(title, bodyHtml) {
+      const resultBox = document.getElementById("lookupResult");
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `<div class="result-empty"><strong>${escapeHtml(title)}</strong><br><br>${bodyHtml}</div>`;
+    }
+
+    function renderNoMatch(selectedFamily, selectedModel, serialInput) {
+      renderEmpty(
+        "No match found.",
+        `Family: ${escapeHtml(selectedFamily || "Not selected")}<br>
+         Model: ${escapeHtml(selectedModel || "Not selected")}<br>
+         Serial entered: ${escapeHtml(serialInput || "None")}<br><br>
+         <span class="small-muted">Check the stamped serial carefully, confirm the tractor family, and make sure the model choice is correct.</span>`
+      );
+    }
+
+    function renderLookupResultCard(match, selectedFamily, selectedModel) {
+      const resultBox = document.getElementById("lookupResult");
+      resultBox.style.display = "block";
+
+      const formatted = typeof formatFordLookupResult === "function"
+        ? formatFordLookupResult(match)
+        : {
+            title: `${match.display_family || "Ford Tractor"} serial number match`,
+            message: `This serial number most likely falls in the ${match.display_year} production year.`,
+            notes: [`Matched serial range: ${match.serial_start_raw} to ${match.serial_end_raw}`]
+          };
+
+      const warnings = buildWarnings(match, selectedFamily);
+      const notes = Array.isArray(formatted?.notes) ? [...formatted.notes] : [];
+      notes.push(`Normalized serial: ${match.normalized_serial}`);
+      notes.push(`Matched family: ${match.display_family}`);
+      notes.push(`Likely production year: ${match.display_year}`);
+      if (selectedModel) notes.push(`Selected model: ${selectedModel}`);
+
+      const notesHtml = notes.length
+        ? `<div class="result-notes"><h3>Notes</h3><ul>${notes.map(note => `<li>${escapeHtml(note)}</li>`).join("")}</ul></div>`
+        : "";
+
+      const warningsHtml = warnings.length
+        ? warnings.map(warning => `<div class="result-warning">${escapeHtml(warning)}</div>`).join("")
+        : "";
+
+      resultBox.innerHTML = `
+        <div class="result-card">
+          <div class="result-topbar">Blue Iron Revival Lookup Result</div>
+          <div class="result-body">
+            <h2 class="result-title">${escapeHtml(formatted.title || "Ford Tractor Match")}</h2>
+            <p class="result-message">${escapeHtml(formatted.message || "Match found.")}</p>
+
+            <div class="result-grid">
+              <div class="result-stat"><div class="result-stat-label">Family</div><div class="result-stat-value">${escapeHtml(match.display_family || selectedFamily || "Unknown")}</div></div>
+              <div class="result-stat"><div class="result-stat-label">Model</div><div class="result-stat-value">${escapeHtml(selectedModel || "Not specified")}</div></div>
+              <div class="result-stat"><div class="result-stat-label">Serial Entered</div><div class="result-stat-value">${escapeHtml(match.original_input || "")}</div></div>
+              <div class="result-stat"><div class="result-stat-label">Normalized Serial</div><div class="result-stat-value">${escapeHtml(match.normalized_serial || "")}</div></div>
+              <div class="result-stat"><div class="result-stat-label">Likely Year</div><div class="result-stat-value">${escapeHtml(String(match.display_year || "Unknown"))}</div></div>
+              <div class="result-stat"><div class="result-stat-label">Range Matched</div><div class="result-stat-value">${escapeHtml(`${match.serial_start_raw || ""} - ${match.serial_end_raw || ""}`)}</div></div>
+            </div>
+
+            ${warningsHtml}
+            ${notesHtml}
+          </div>
+        </div>`;
+    }
+
+    function resetForm() {
+      document.getElementById("tractorFamily").value = "";
+      document.getElementById("tractorModel").innerHTML = `<option value="">Select model</option>`;
+      document.getElementById("tractorModel").disabled = true;
+      document.getElementById("serialInput").value = "";
+      document.getElementById("serialHelp").textContent = "Select a tractor family to see model options and serial number notes.";
+      const resultBox = document.getElementById("lookupResult");
+      resultBox.style.display = "none";
+      resultBox.innerHTML = "";
+    }
+
+    function handleLookup() {
+      const selectedFamily = document.getElementById("tractorFamily").value;
+      const selectedModel = document.getElementById("tractorModel").value;
+      const serialInput = document.getElementById("serialInput").value.trim();
+
+      if (!selectedFamily) return renderEmpty("Missing tractor family.", "Select the tractor family / series first.");
+      if (!selectedModel) return renderEmpty("Missing model.", "Select the tractor model before running the lookup.");
+      if (!serialInput) return renderEmpty("Missing serial number.", "Enter a serial number to continue.");
+      if (!fordSerialData.length) return renderEmpty("Data not loaded.", "The Ford serial number dataset is not available yet.");
+      if (typeof findFordSerialMatch !== "function") return renderError("The helper file <code>ford_serial_lookup_patch.js</code> is missing or not loading correctly.");
+
+      const rawMatch = findFordSerialMatch(serialInput, selectedFamily, fordSerialData);
+      if (!rawMatch) return renderNoMatch(selectedFamily, selectedModel, serialInput);
+
+      if (!doesModelRoughlyMatch(selectedModel, rawMatch)) {
+        return renderEmpty(
+          "Possible family match, but the selected model may not line up.",
+          `Family: ${escapeHtml(selectedFamily)}<br>
+           Selected model: ${escapeHtml(selectedModel)}<br>
+           Matched dataset family: ${escapeHtml(rawMatch.display_family || rawMatch.model_family || "Unknown")}<br><br>
+           <span class="small-muted">Recheck the stamped model number and serial number. Early Ford numbering systems can overlap by family and era.</span>`
+        );
+      }
+
+      renderLookupResultCard(rawMatch, selectedFamily, selectedModel);
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadFordSerialData();
+      const familySelect = document.getElementById("tractorFamily");
+      const modelSelect = document.getElementById("tractorModel");
+      const lookupBtn = document.getElementById("lookupBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const serialInput = document.getElementById("serialInput");
+
+      familySelect.addEventListener("change", () => {
+        const family = familySelect.value;
+        populateModelDropdown(family);
+        updateHelpText(family);
+        modelSelect.value = "";
+      });
+
+      lookupBtn.addEventListener("click", handleLookup);
+      resetBtn.addEventListener("click", resetForm);
+      serialInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") handleLookup();
+      });
+    });
+  </script>
 </body>
 </html>
