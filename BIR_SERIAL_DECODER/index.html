@@ -585,17 +585,6 @@
 
       const rawMatch = findFordSerialMatch(serialInput, selectedFamily, fordSerialData);
       if (!rawMatch) return renderNoMatch(selectedFamily, selectedModel, serialInput);
-
-      if (!doesModelRoughlyMatch(selectedModel, rawMatch)) {
-        return renderEmpty(
-          "Possible family match, but the selected model may not line up.",
-          `Family: ${escapeHtml(selectedFamily)}<br>
-           Selected model: ${escapeHtml(selectedModel)}<br>
-           Matched dataset family: ${escapeHtml(rawMatch.display_family || rawMatch.model_family || "Unknown")}<br><br>
-           <span class="small-muted">Recheck the stamped model number and serial number. Early Ford numbering systems can overlap by family and era.</span>`
-        );
-      }
-
       renderLookupResultCard(rawMatch, selectedFamily, selectedModel);
     }
 
