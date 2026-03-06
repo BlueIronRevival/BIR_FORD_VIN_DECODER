@@ -6,18 +6,26 @@
       .replace(/[★☆*◇◊<>]/g, "")
       .replace(/[^A-Z0-9]/g, "");
 
-    const prefixMatch = cleaned.match(/^[A-Z]+/);
-    const numberMatch = cleaned.match(/(\d+)$/);
+    const splitMatch = cleaned.match(/^(.*?)(\d+)$/);
+
+    if (!splitMatch) {
+      return {
+        raw: cleaned,
+        prefix: "",
+        number: null
+      };
+    }
 
     return {
       raw: cleaned,
-      prefix: prefixMatch ? prefixMatch[0] : "",
-      number: numberMatch ? parseInt(numberMatch[1], 10) : null
+      prefix: splitMatch[1] || "",
+      number: parseInt(splitMatch[2], 10)
     };
   }
 
   function familyAliases(selectedFamily) {
     const map = {
+      "N Series": ["N SERIES", "9N", "2N", "8N"],
       "9N": ["9N"],
       "2N": ["2N"],
       "8N": ["8N"],
@@ -44,11 +52,13 @@
     const rowFamily = String(row.model_family || "");
     const rowEra = String(row.era || "");
     const rowModel = String(row.model || "");
+    const rowNotes = String(row.notes || "");
 
     return (
       valueContainsAlias(rowFamily, aliases) ||
       valueContainsAlias(rowEra, aliases) ||
-      valueContainsAlias(rowModel, aliases)
+      valueContainsAlias(rowModel, aliases) ||
+      valueContainsAlias(rowNotes, aliases)
     );
   }
 
@@ -57,14 +67,6 @@
 
     if (rowPrefix === "") {
       return normalized.prefix === "";
-    }
-
-    if (normalized.prefix === "") {
-      return false;
-    }
-
-    if (["A", "B", "C"].includes(rowPrefix) && ["A", "B", "C"].includes(normalized.prefix)) {
-      return true;
     }
 
     return normalized.prefix === rowPrefix;
@@ -76,17 +78,9 @@
     }
 
     const start = Number(row.serial_start_num);
-    const end = row.serial_end_num === null ? null : Number(row.serial_end_num);
+    const end = Number(row.serial_end_num);
 
-    if (Number.isNaN(start)) {
-      return false;
-    }
-
-    if (end === null) {
-      return normalized.number >= start;
-    }
-
-    if (Number.isNaN(end)) {
+    if (Number.isNaN(start) || Number.isNaN(end)) {
       return false;
     }
 
@@ -100,18 +94,22 @@
     if (rowPrefixMatches(normalized, row)) score += 50;
     if (rowNumberMatches(normalized, row)) score += 200;
 
-    if (selectedFamily === "2N" && normalized.prefix === "9N") score += 10;
-    if (selectedFamily === "NAA/Jubilee" && String(row.model_family || "").toUpperCase().includes("NAA")) score += 10;
-    if (["A", "B"].includes(normalized.prefix) && ["A", "B", "C"].includes(String(row.serial_prefix || "").toUpperCase())) score += 5;
+    if (selectedFamily === "2N" && normalized.prefix === "9N") score += 25;
+    if (selectedFamily === "N Series" && String(row.model_family || "").toUpperCase() === "2N" && normalized.prefix === "9N") score += 10;
 
     return score;
   }
 
   function findFordSerialMatch(input, selectedFamily, data) {
-    if (!Array.isArray(data) || !data.length) return null;
+    if (!Array.isArray(data) || !data.length) {
+      return null;
+    }
 
     const normalized = normalizeSerial(input);
-    if (!normalized.raw || normalized.number === null) return null;
+
+    if (!normalized.raw || normalized.number === null) {
+      return null;
+    }
 
     const candidates = data.filter(row => {
       if (!familyMatchesRow(selectedFamily, row)) return false;
@@ -120,22 +118,23 @@
       return true;
     });
 
-    if (!candidates.length) return null;
+    if (!candidates.length) {
+      return null;
+    }
 
     candidates.sort((a, b) => {
       const scoreA = scoreRow(normalized, selectedFamily, a);
       const scoreB = scoreRow(normalized, selectedFamily, b);
-      if (scoreB !== scoreA) return scoreB - scoreA;
 
-      const aClosed = a.serial_end_num === null ? 1 : 0;
-      const bClosed = b.serial_end_num === null ? 1 : 0;
-      if (aClosed !== bClosed) return aClosed - bClosed;
+      if (scoreB !== scoreA) return scoreB - scoreA;
 
       const yearA = Number(a.year || 0);
       const yearB = Number(b.year || 0);
       if (yearA !== yearB) return yearA - yearB;
 
-      return Number(b.serial_start_num || 0) - Number(a.serial_start_num || 0);
+      const startA = Number(a.serial_start_num || 0);
+      const startB = Number(b.serial_start_num || 0);
+      return startA - startB;
     });
 
     const row = candidates[0];
@@ -145,8 +144,7 @@
       original_input: input,
       normalized_serial: normalized.raw,
       display_family: row.model_family || row.era || selectedFamily || "Ford Tractor",
-      display_year: row.year,
-      inferred_prefix_bucket: ["A", "B"].includes(normalized.prefix) && ["A", "B", "C"].includes(String(row.serial_prefix || "").toUpperCase())
+      display_year: row.year
     };
   }
 
@@ -164,8 +162,6 @@
     } else {
       notes.push("Expected serial prefix: numeric serial only");
     }
-
-    if (match.notes) notes.push(match.notes);
 
     return {
       title: `${match.display_family} serial number match`,
